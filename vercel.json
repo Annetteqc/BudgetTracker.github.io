@@ -6,7 +6,7 @@
       "destination": "/server/index.ts"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|favicon.ico).*|^(?!.*\\.).*)",
       "destination": "/server/index.ts"
     }
   ]
