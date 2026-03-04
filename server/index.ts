@@ -59,6 +59,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Replace from (async () => { until the end of the file
 (async () => {
   await registerRoutes(httpServer, app);
 
@@ -73,14 +74,13 @@ app.use((req, res, next) => {
   });
 
   if (process.env.NODE_ENV === "production") {
-    // VERCEL FIX: Instead of a separate serveStatic file, we handle it directly
-    // to ensure it finds the 'dist/public' folder correctly.
+    // This tells Vercel exactly where the built frontend files are
     const path = await import("path");
     const publicPath = path.resolve(process.cwd(), "dist", "public");
     
     app.use(express.static(publicPath));
 
-    // This handles the 404/refresh issue by sending everything back to index.html
+    // This fixes the refresh error by always serving the app
     app.get("*", (_req, res) => {
       res.sendFile(path.join(publicPath, "index.html"));
     });
@@ -89,9 +89,9 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // VERCEL FIX: Only call .listen if we aren't on Vercel. 
-  // Vercel handles the "listening" for you.
-  if (process.env.VERCEL !== "1") {
+  // CRITICAL VERCEL FIX: Only run .listen if we are NOT on Vercel
+  // Vercel manages the connection itself; trying to listen manually causes a crash.
+  if (!process.env.VERCEL) {
     const port = parseInt(process.env.PORT || "5000", 10);
     httpServer.listen(
       {
@@ -106,5 +106,5 @@ app.use((req, res, next) => {
   }
 })();
 
-// VERCEL REQUIREMENT: Export the app so Vercel can run it
+// VERCEL REQUIREMENT: This export allows Vercel to see your app
 export default app;
